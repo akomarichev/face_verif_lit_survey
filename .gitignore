@@ -1,0 +1,14 @@
+# ignore the following files and directories
+*.bst
+*.cls
+*.zip
+IEEEtran/
+IEEEtranBST2/
+bibtex/
+fv_architecture.pdf
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.gz
