@@ -146,6 +146,32 @@ The other issue which I would like to consider here is using of large-scale data
 I will also descibe two widely used datasets for evaluation: Labeled Faces in the Wild (LFW) and Youtube Faces DB (YTF).
 
 \section{DeepFace}
+
+\subsection{Face alignment}
+
+\begin{center}
+\includegraphics[scale=0.5]{pictures/front.png}
+\par\large\textit{Figure ?.?: Frontalization steps.}
+\end{center}
+
+\subsection{DeepFace architecture}
+
+The main reason behind using feature representations learned through DNN instead of using handcrafted engineered features because they shows better prediction accuracy.  The more data available, the better features could be extracted using deep architectures. \par
+The big picture of DeepFace model is represented below. \par
+
+\begin{center}
+\includegraphics[scale=0.5]{pictures/deepface.png}
+\par\large\textit{Figure ?.?: DeepFace architecture.}
+\end{center}
+
+Input signal to the DNN is a 3D-aligned faces in RGB. The size of the input image is $152 \times 152$ pixels. The process of getting 3D-aligned face images was described in the previous section.\par
+Speaking of DNN architecture, it has two convolutional layers (C1$@11\times11\times32$ and C3$@9\times9\times16$), one max-pooling layer (M2:$3\times3, stride=2$), three locally connected layers (L4$@9\times9\times16$, L5$@7\times7\times16$, and L6$@5\times5\times16$) and final two fully connected layers (F7:$4096d$ and F8:$4030d$). The key difference between convolutional layer and locally connected (LC) one that there is no weights sharing across the whole image. Each patch in LC layer has his own filter. In contrast to LC layers, convolutional layers has one filter for every patch extracted from image. Having more parameters to train in the LC layers doesn't lead to an increase in computations. The only reason why they used this type of layers because they have pretty huge training dataset which made it possible to train them. The number of parameters was close to 120M, where 95$\%$ was from LC and FC layers. The last FC layer represents softmax classifier, where the number of classes is equal to 4030 unique identities in the training dataset. \par
+As loss function was chosen cross-entropy loss, becuase the goal is to minimize the probability of the false classifications. For example, if $p_i$ is a prediction that this image belongs to class $i$, than loss function $L$ could be calculated in the following way: $L = \sum_i^N-log(p_i)$, where N is a number of classes. To update parameters in the model was used stochastic gradient descent (SGD). The size of the mini-batch was equal to 128. One of the distinctive property of this DNN that gradients, calculated by standard backpropagation algorithm, are sparse. They mentioned that approximately 75$\%$ of them were equal to zero in the last five layers. That happened most likely because they used as non-linear activation function a rectifier linear units: $max(0, x)$. Sparsity was encorouged in the last time. Applying such sparsity techniques as dropout \cite{krizhevsky2012imagenet}, maxout \cite{goodfellow2013maxout} shows better prediction accuracy. \par
+In order to make their DNN more robust to illuminations, they used normalization as a final stage. The basic idea of normalization, that every feature value was divided by the largest value across all these features. This technique gave them distribution of each feature between zero and one. 
+
+\subsection{Metrics to estimate verification}
+
+\subsection{Experiments and Results}
 Comparing different reduced architectures (1) without second conovolutional layer, 2) without first two locally connected layers, and 3) without three these layers) with the original one, they showed that the deep of the architecture is a critical issue. Deeper DNN can learn better feature representations. Therefore, deeper architectures shows higher final accuracy than shallower ones does. \par
 In conclusion, they achieved the new state-of-the-art on the LFW and YTF datasets by the time when the paper was published; they proposed a new alignment techniques based on 3D modeling of the face images in the unconstrained settings; they came up with a new DNN architecture which was trained on their own huge dataset.
 
