@@ -126,7 +126,10 @@
 
 \section{Introduction}
 
-In the recent few years the interest in face recognition problems was increased significantly. One of the reasons behind this that now we have more powerful machines than couple decades ago which we can use to run more complex models. Moreover with the rapid grough in the development of convolutional netural networks (CNN) and deep architectures we could learn much better feature representations to make our predictions more accurate. Plus, there are a plenty of potential areas where we can apply our models such as: biometrics, information security, law enforcement and surveillance, access control and many others \cite{zhao2003face}. \par
+In the recent few years the interest in face recognition problems was increased significantly. One of the reasons behind this that now we have more powerful machines than couple decades ago which we can use to run more complex models. Moreover with the rapid grough in the development of convolutional netural networks (CNN) and deep architectures we could learn much better feature representations to make our predictions more accurate. But the interesting question which come to our mind: why did neural networks become so popular recently? And the answer is the following: Support Vector Machine (SVM), Linear Disciminant Analysis (LDA), and Principal Component Analysis (PCA) are showed bad scaling properties. On the other hand, deep neural networks (DNN) are more tolerate to the size of training dataset.\cite{taigman2014deepface}.
+
+
+Plus, there are a plenty of potential areas where we can apply our models such as: biometrics, information security, law enforcement and surveillance, access control and many others \cite{zhao2003face}. \par
 Face recognition can be divided into several directions:
 \begin{itemize}
   \item face verification
@@ -147,12 +150,18 @@ I will also descibe two widely used datasets for evaluation: Labeled Faces in th
 
 \section{DeepFace}
 
+Facebook presented their own DeepFace model \cite{taigman2014deepface} to solve face verification problem. In their paper, they are considering face images in unconstrained settings. Based on that, they proposed new 3D alignment process, and their own DNN architecture, which has nine layers, to learn good feature representations. Also they collected their own huge dataset with 4 million face images which belong to 4K unique identities. This dataset was used to train their DeepFace model.
+
 \subsection{Face alignment}
+
+Alignment is still considered to be difficult problem to solve especially in the unconstrained environment. In the recent few years 3D modeling was used extensively \cite{hassner2013viewing}. In this paper \cite{schroff2015facenet}, authors applied 3D modeling too to extract frontal faces. Simple steps is presented in the image below.\par
 
 \begin{center}
 \includegraphics[scale=0.5]{pictures/front.png}
 \par\large\textit{Figure ?.?: Frontalization steps.}
 \end{center}
+
+Frontalization. The first step is to detect face, they used 6 fiducial points to do this. Two points for eyes, one for the tip of nose, and three others to locate mouth. After that detected face was cropped. That is the final step in Face Detection process, see Figure ?.?. After that they added 67 more fiducial points as anchors and projected them on the 3D face model. Their 3D model was got by taking an average among all available 3D models in the USF Human-ID database. All these fiducial points was extracted applying Support Vector Regressor (SVR) algorithm. And the final step was to wrap 2D image to get frontal face of the original face image. 
 
 \subsection{DeepFace architecture}
 
@@ -165,14 +174,31 @@ The big picture of DeepFace model is represented below. \par
 \end{center}
 
 Input signal to the DNN is a 3D-aligned faces in RGB. The size of the input image is $152 \times 152$ pixels. The process of getting 3D-aligned face images was described in the previous section.\par
+
 Speaking of DNN architecture, it has two convolutional layers (C1$@11\times11\times32$ and C3$@9\times9\times16$), one max-pooling layer (M2:$3\times3, stride=2$), three locally connected layers (L4$@9\times9\times16$, L5$@7\times7\times16$, and L6$@5\times5\times16$) and final two fully connected layers (F7:$4096d$ and F8:$4030d$). The key difference between convolutional layer and locally connected (LC) one that there is no weights sharing across the whole image. Each patch in LC layer has his own filter. In contrast to LC layers, convolutional layers has one filter for every patch extracted from image. Having more parameters to train in the LC layers doesn't lead to an increase in computations. The only reason why they used this type of layers because they have pretty huge training dataset which made it possible to train them. The number of parameters was close to 120M, where 95$\%$ was from LC and FC layers. The last FC layer represents softmax classifier, where the number of classes is equal to 4030 unique identities in the training dataset. \par
+
 As loss function was chosen cross-entropy loss, becuase the goal is to minimize the probability of the false classifications. For example, if $p_i$ is a prediction that this image belongs to class $i$, than loss function $L$ could be calculated in the following way: $L = \sum_i^N-log(p_i)$, where N is a number of classes. To update parameters in the model was used stochastic gradient descent (SGD). The size of the mini-batch was equal to 128. One of the distinctive property of this DNN that gradients, calculated by standard backpropagation algorithm, are sparse. They mentioned that approximately 75$\%$ of them were equal to zero in the last five layers. That happened most likely because they used as non-linear activation function a rectifier linear units: $max(0, x)$. Sparsity was encorouged in the last time. Applying such sparsity techniques as dropout \cite{krizhevsky2012imagenet}, maxout \cite{goodfellow2013maxout} shows better prediction accuracy. \par
+
 In order to make their DNN more robust to illuminations, they used normalization as a final stage. The basic idea of normalization, that every feature value was divided by the largest value across all these features. This technique gave them distribution of each feature between zero and one. 
 
 \subsection{Metrics to estimate verification}
 
+In order to decide either two faces belong to the same person or not we have to choose some verification metric to estimate that. There are two types of metrics: unsupervised and supervised. The authors of the paper mostly used unsupervised metric which is nothing but inner product between two feature vectors. But they also considered supervised metrics in their work such as Siammese network and $\chi^2$ metric. \par
+
+Let's consider the first type of supervised approaches, called Siammese network \cite{chopra2005learning}. After finishing training process on the large dataset, they basically replicated DNN removing last softmax layer. Each of this networks returns feature representation vector, which we can use to estimate similarity between two faces. By subtracting one feature vector from the other and taking absolute value of this subtraction. And after that we can map these values to the single logistic unit, in order to decide either faces are same or not. Mathematically, we can represent it in the following way: $d(f_1, f_2) = \sum_i^N w_i|f_1^{(i)} - f_2^{(i)}|$, where $N$ is a number of learned features, $f_1$ and $f_2$ - feature vectors for first face image and for second one, and $w_i$ - trainable weights. To train weights was used same cross-entropy loss function with standard backpropagation algorithm for calculating updates. \par
+
+The other supervised metric which was considered in the paper was so called local binary pattern (LBP) \cite{ahonen2006face}. In order to calculate distance between two normalized features was used weighted Chi squared similarity: $\chi^2(f_1, f_2) = \sum_i^N w_i\frac{(f_1^{(i)} - f_2^{(i)})^2}{(f_1^{(i)} - f_2^{(i)})}$. To learn $w$ parameters was used linear SVM.
 \subsection{Experiments and Results}
+Their DeepFace model was trained on a new huge dataset extracted from Facebook photos, so called Social Face Classification (SFC) dataset. SFC dataset contains 4.4M labeled face images belonging to 4030 unique identities. 5$\%$ of this dataset was used for testing purposes. Unique identities from SFC dataset and unique people from current benchmarks, such as YTF or LFW, do not have anything in common. These sets do not intersect. That was achieved simply by comparing label names.\par
+
+Training process took three days to run model on the whole SFC dataset for 15 epochs. Learning rate was decreased during the training procedure up to 0.0001 starting from 0.01. \par
+
+They provided several experiments with the size of the training dataset, different number of unique identities. When whole 4K identities was used they got the highest accuracy. It is not suprising fact, because the more diverse our training dataset, the more better features we can learn. Same thing with the size of the dataset. The origianl SFC was reduced up to 10$\%$ with the same 4K people showed twice less accuracy than 50$\%$ dataset.\par
+
 Comparing different reduced architectures (1) without second conovolutional layer, 2) without first two locally connected layers, and 3) without three these layers) with the original one, they showed that the deep of the architecture is a critical issue. Deeper DNN can learn better feature representations. Therefore, deeper architectures shows higher final accuracy than shallower ones does. \par
+
+Running their pretrained model on the LFW dataset and combine with Siamese Network and Chi squared distance, described earlier, they achieved $97.35\%$ accuracy. DeepFace model showed $91.4\%$ accurately verified faces on YTF dataset. See results in the Table ~\ref{tab:table2}.
+
 In conclusion, they achieved the new state-of-the-art on the LFW and YTF datasets by the time when the paper was published; they proposed a new alignment techniques based on 3D modeling of the face images in the unconstrained settings; they came up with a new DNN architecture which was trained on their own huge dataset.
 
 \section{FaceNet}
@@ -229,7 +255,7 @@ Speaking of the accuracy of their model on two academic dataset: LFW and Youtube
 \multirow{2}{*}{} Models & \multicolumn{2}{l|}{Datasets} \\ \cline{2-3} 
                   &   LFW  &  Youtube Faces DB        \\ \hline
                FaceNet   &  $\textbf{99.63}\% \pm$0.15   &   $\textbf{95.12}\% \pm$0.39       \\ \hline
-               DeepFace &  ...   &  ...       \\ \hline
+               DeepFace &  $\textbf{97.35}\% \pm$0.25   &  $\textbf{91.4}\% \pm$1.1       \\ \hline
                Parkhi's approach		& $\textbf{98.65}\%$	 & $\textbf{97.3}\%$ \\ \hline
                DeepID2 &  ...   &  ...       \\ \hline
                DeepID2+ &  ...   &  ...       \\ \hline
