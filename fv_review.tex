@@ -193,7 +193,7 @@ Their DeepFace model was trained on a new huge dataset extracted from Facebook p
 
 Training process took three days to run model on the whole SFC dataset for 15 epochs. Learning rate was decreased during the training procedure up to 0.0001 starting from 0.01. \par
 
-They provided several experiments with the size of the training dataset, different number of unique identities. When whole 4K identities was used they got the highest accuracy. It is not suprising fact, because the more diverse our training dataset, the more better features we can learn. Same thing with the size of the dataset. The origianl SFC was reduced up to 10$\%$ with the same 4K people showed twice less accuracy than 50$\%$ dataset.\par
+They provided several experiments with the size of the training dataset, different number of unique identities. When whole 4K identities was used they got the highest accuracy. It is not suprising fact, because the more diverse our training dataset, the more better features we can learn. Same thing with the size of the dataset. The original SFC was reduced up to 10$\%$ with the same 4K people showed twice less accuracy than 50$\%$ dataset.\par
 
 Comparing different reduced architectures (1) without second conovolutional layer, 2) without first two locally connected layers, and 3) without three these layers) with the original one, they showed that the deep of the architecture is a critical issue. Deeper DNN can learn better feature representations. Therefore, deeper architectures shows higher final accuracy than shallower ones does. \par
 
@@ -257,9 +257,10 @@ Speaking of the accuracy of their model on two academic dataset: LFW and Youtube
                FaceNet   &  $\textbf{99.63}\% \pm$0.15   &   $\textbf{95.12}\% \pm$0.39       \\ \hline
                DeepFace &  $\textbf{97.35}\% \pm$0.25   &  $\textbf{91.4}\% \pm$1.1       \\ \hline
                Parkhi's approach		& $\textbf{98.65}\%$	 & $\textbf{97.3}\%$ \\ \hline
-               DeepID2 &  ...   &  ...       \\ \hline
-               DeepID2+ &  ...   &  ...       \\ \hline
-               DeepID3 &  ...   &  ...       \\ \hline
+               DeepID &  $\textbf{97.45}\%$	   &  N/A       \\ \hline
+               DeepID2 &  $\textbf{99.15}\%$   &  N/A       \\ \hline
+               DeepID2+ &  $\textbf{99.47}\% \pm$0.12   &  $\textbf{93.2}\% \pm$0.2       \\ \hline
+               DeepID3 &  $\textbf{99.53}\% \pm$0.1   &  N/A       \\ \hline
                ... & ... & ... \\ \hline
 \end{tabular}
 \caption{State-of-the-art in face verification.}
@@ -286,6 +287,53 @@ The evaluation was performed on LFW and YTF datasets, but as the training data t
 During the training proces, models B and D used pretrained parameters of A one instead of starting from scratch. \par
 They considred several aspects in their experiments on LFW dataset. I will only describe here three of them. First, they evaluated the deep of architectures and how it depends on the accuracy. The experiments showed that B model ($\textbf{97.27}\%$) gave a slight boost in accuracy over model A ($\textbf{96.70}\%$), but model D didn't improve results of model B it performed even worse by giving $\textbf{96.73}\%$ of accuracy. And one of the potential reason for this, that the number of parameters are different. The other one that they used pre-trained parameters from A to train B and D models. By transfering pre-trained parameters one have to be careful with learning rate and momentum. Also they did not investigated random initialization in their experiments. Second, applying 2D allignment on the test dataset gave improvement in accuracy, but applying allignment to training dataset did not improve model. Third, by applying triplet loss they got $\textbf{99.13\%}$ accuracy. It is significant improvements over model B without embedding. \par
 To sum it up, they used simpler architecture than was used in DeepID-2,2+,3 \cite{sun2014deep, sun2015deeply, sun2015deepid3} and their model was trained on the smaller dataset comparing to DeepFace and FaceNet approaches. Nevertheless, they achieved comparable results, see Table ~\ref{tab:table2}.
+
+
+\section{DeepID approach}
+
+\subsection{DeepID}
+
+In this work \cite{sun2014deep} they are considering a problem of classifiying face images to specific person. It is a face identitification problem. The number of unique identities is equal to 10,000. As one can notice, this problem is more challenging comparing to face verification task. They proposed their own deep convolutional network to extract representative features. The architecture of proposed DNN is represented on Fig. ?.?.
+
+\begin{center}
+\includegraphics[scale=0.5]{pictures/deepid.png}
+\par\large\textit{Figure ?.?: DeepID convolutional network architecture.}
+\end{center}
+
+\subsubsection{DeepID architecture}
+
+So their convolutional networks has the following architecture. L1, L2 and L3 represents convolutional layers followed by max-pooling. L4 layer is a last convolutional layer without pooling. F is a vector of learned features. Dimension of the last layer is 160. Moreover, as one can see, the elements of final F layer was formed by projecting features (fully-connected) from L3 and L4 layers. And one of the reasons behind that this type of connection helps to learn multi-scale feature representations \cite{sermanet2011traffic}.  In order to classify face images into one of the specific categories, they added softmax layer, where size was equal to 10,000. F layer and softmax are fully-connected. Rectified linear units (ReLU) was chosen as a non-linear activation function across the whole network. The loss function was a cross-entropy. They used standard Stochastic Gradient descent with backpropagation.
+
+\subsubsection{Face verification problem}
+
+The model from previous section was used to extract features. First, they detected five face points: centers of two eyes, tip of the nose, and two corner points of a mouth. When these fiducial points was detected they applied global similarity transformation. After that they extracted 60 different patches (10 different regions, 3 different scales, and two different color schemes) to train 60 convolutional networks to extract specific features for specific patch. Plus, they considered aligned face image with horizontally flipped image too. So each image was represented by 19,200 ($160\times2\times60$) learned features. \par
+
+In order to solve face verification problem they considered two approaches: Joint Bayesian and neural network. Joint Bayesian approach based on idea of calculating log-likelihood of a pair face images. Proposed neural network for face verification problem had four layers: input layer, two hiddent layers and output one. Input layer represents extracted features from two comparing face images. These features was divided by groups (similar pathes). This input layer was locally connected to the first hidden layer. The purpose of this layer is dimensional reduction and learning similarities between similar patches (local learning). Second hidden layer fully connected with first one. Second layer learns similarities among all these groups (global learning). And the final layer was represented by one unit, which outputs the probability of similarity compared two face images. In order to train this neural network they applied dropout techique to both hidden layers.
+
+\subsubsection{Experiments and results}
+
+DeepID model was trained on CelebA \cite{liu2015faceattributes} dataset and tested on LFW dataset. Both datasets are mutually exclusive. CelebA dataset has 202,599 face images belonging to 10,077 unique identities. $80\%$ of training dataset was used for feature extraction procedure and other $20\%$ for training one of the face verification method. \par
+
+Speaking of the multi-scale approach, combinig both features from third (L3) and forth (L4) layers, to learn final representations (F). Their experiments showed that this type of convolutional network gives almost $5\%$ in error reduction comparing to one without L4 layer. \par
+
+Comparing two methods for face verification problem, Joint Bayesian outperforms neural network by almost $2\%$ on average in accuracy prediction. Their best result on LFW using Joint Bayesian approach gave $97.45\%$ accuracy. It is close to human accuracy on LFW dataset ($97.53\%$).
+
+\subsection{DeepID2}
+
+\begin{center}
+\includegraphics[scale=0.5]{pictures/deepid2.png}
+\par\large\textit{Figure ?.?: DeepFace architecture.}
+\end{center}
+
+\subsection{DeepID2+}
+
+\begin{center}
+\includegraphics[scale=0.5]{pictures/deepid3.png}
+\par\large\textit{Figure ?.?: DeepFace architecture.}
+\end{center}
+
+\subsection{DeepID3}
+
 \newpage
 
 \section{Conclusion}
