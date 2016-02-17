@@ -193,7 +193,7 @@ Their DeepFace model was trained on a new huge dataset extracted from Facebook p
 
 Training process took three days to run model on the whole SFC dataset for 15 epochs. Learning rate was decreased during the training procedure up to 0.0001 starting from 0.01. \par
 
-They provided several experiments with the size of the training dataset, different number of unique identities. When whole 4K identities was used they got the highest accuracy. It is not suprising fact, because the more diverse our training dataset, the more better features we can learn. Same thing with the size of the dataset. The original SFC was reduced up to 10$\%$ with the same 4K people showed twice less accuracy than 50$\%$ dataset.\par
+They provided several experiments with the size of the training dataset, different number of unique identities. When whole 4K identities was used they got the highest accuracy. It is not surprising fact, because the more diverse our training dataset, the more better features we can learn. Same thing with the size of the dataset. The original SFC was reduced up to 10$\%$ with the same 4K people showed twice less accuracy than 50$\%$ dataset.\par
 
 Comparing different reduced architectures (1) without second conovolutional layer, 2) without first two locally connected layers, and 3) without three these layers) with the original one, they showed that the deep of the architecture is a critical issue. Deeper DNN can learn better feature representations. Therefore, deeper architectures shows higher final accuracy than shallower ones does. \par
 
@@ -250,17 +250,18 @@ Speaking of the accuracy of their model on two academic dataset: LFW and Youtube
 
 \begin{table}[!htb]
 \centering
-\begin{tabular}{|l|l|l|l|l|}
+\def\arraystretch{2}
+\begin{tabular}{|p{4cm}|p{4cm}|p{4cm}|l|l|}
 \hline
-\multirow{2}{*}{} Models & \multicolumn{2}{l|}{Datasets} \\ \cline{2-3} 
-                  &   LFW  &  Youtube Faces DB        \\ \hline
-               FaceNet   &  $\textbf{99.63}\% \pm$0.15   &   $\textbf{95.12}\% \pm$0.39       \\ \hline
-               DeepFace &  $\textbf{97.35}\% \pm$0.25   &  $\textbf{91.4}\% \pm$1.1       \\ \hline
-               Parkhi's approach		& $\textbf{98.65}\%$	 & $\textbf{97.3}\%$ \\ \hline
-               DeepID &  $\textbf{97.45}\%$	   &  N/A       \\ \hline
-               DeepID2 &  $\textbf{99.15}\%$   &  N/A       \\ \hline
-               DeepID2+ &  $\textbf{99.47}\% \pm$0.12   &  $\textbf{93.2}\% \pm$0.2       \\ \hline
-               DeepID3 &  $\textbf{99.53}\% \pm$0.1   &  N/A       \\ \hline
+\multirow{2}{*}{} Models & \multicolumn{2}{c|}{Datasets} \\ \cline{2-3} 
+                  &   $\textit{\textbf{LFW}}$  &  $\textit{\textbf{Youtube Faces DB}}$        \\ \hline
+               $\textit{FaceNet}$   &  $\textbf{99.63}\% \pm$0.15   &   $\textbf{95.12}\% \pm$0.39       \\ \hline
+               $\textit{DeepFace}$ &  $\textbf{97.35}\% \pm$0.25   &  $\textbf{91.4}\% \pm$1.1       \\ \hline
+               $\textit{Parkhi's approach}$		& $\textbf{98.65}\%$	 & $\textbf{97.3}\%$ \\ \hline
+               $\textit{DeepID}$ &  $\textbf{97.45}\%$	   &  N/A       \\ \hline
+               $\textit{DeepID2}$ &  $\textbf{99.15}\%$   &  N/A       \\ \hline
+               $\textit{DeepID2+}$ &  $\textbf{99.47}\% \pm$0.12   &  $\textbf{93.2}\% \pm$0.2       \\ \hline
+               $\textit{DeepID3}$ &  $\textbf{99.53}\% \pm$0.1   &  N/A       \\ \hline
                ... & ... & ... \\ \hline
 \end{tabular}
 \caption{State-of-the-art in face verification.}
@@ -291,9 +292,11 @@ To sum it up, they used simpler architecture than was used in DeepID-2,2+,3 \cit
 
 \section{DeepID approach}
 
+The family of DeepID approaches \cite{sun2014deepid, sun2014deep, sun2015deeply, sun2015deepid3} was proposed by guys from the Chinese University of Hong Kong. All these methods are united by one idea to combine interpersonal (face images belonging to different persons) and intrapersonal (similar face images belonging to the same person) variations to learn better representations. The goal is to increase the interpersonal differences and at the same time reduce the intrapersonal differences between a pair of face images.
+
 \subsection{DeepID}
 
-In this work \cite{sun2014deep} they are considering a problem of classifiying face images to specific person. It is a face identitification problem. The number of unique identities is equal to 10,000. As one can notice, this problem is more challenging comparing to face verification task. They proposed their own deep convolutional network to extract representative features. The architecture of proposed DNN is represented on Fig. ?.?.
+In this work \cite{sun2014deepid} they are considering a problem of classifiying face images to specific person. It is a face identitification problem. The number of unique identities is equal to 10,000. As one can notice, this problem is more challenging comparing to face verification task. They proposed their own deep convolutional network to extract representative features. The architecture of proposed DNN is represented on Fig. ?.?.
 
 \begin{center}
 \includegraphics[scale=0.5]{pictures/deepid.png}
@@ -308,7 +311,7 @@ So their convolutional networks has the following architecture. L1, L2 and L3 re
 
 The model from previous section was used to extract features. First, they detected five face points: centers of two eyes, tip of the nose, and two corner points of a mouth. When these fiducial points was detected they applied global similarity transformation. After that they extracted 60 different patches (10 different regions, 3 different scales, and two different color schemes) to train 60 convolutional networks to extract specific features for specific patch. Plus, they considered aligned face image with horizontally flipped image too. So each image was represented by 19,200 ($160\times2\times60$) learned features. \par
 
-In order to solve face verification problem they considered two approaches: Joint Bayesian and neural network. Joint Bayesian approach based on idea of calculating log-likelihood of a pair face images. Proposed neural network for face verification problem had four layers: input layer, two hiddent layers and output one. Input layer represents extracted features from two comparing face images. These features was divided by groups (similar pathes). This input layer was locally connected to the first hidden layer. The purpose of this layer is dimensional reduction and learning similarities between similar patches (local learning). Second hidden layer fully connected with first one. Second layer learns similarities among all these groups (global learning). And the final layer was represented by one unit, which outputs the probability of similarity compared two face images. In order to train this neural network they applied dropout techique to both hidden layers.
+In order to solve face verification problem they considered two approaches: Joint Bayesian and neural network. Joint Bayesian approach based on idea of calculating log-likelihood ratio of two joint probabilities of a pair face images $f_1$ and $f_2$ through interpersonal and itrapersonal hypothesis $H_{inter}$ and $H_{intra}$: $log \frac{P(f_1, f_2 | H_{inter})}{P(f_1, f_2 | H_{intra})}$. Proposed neural network for face verification problem had four layers: input layer, two hiddent layers and output one. Input layer represents extracted features from two comparing face images. These features was divided by groups (similar patches). This input layer was locally connected to the first hidden layer. The purpose of this layer is dimensional reduction and learning similarities between similar patches (local learning). Second hidden layer fully connected with first one. Second layer learns similarities among all these groups (global learning). And the final layer was represented by one unit, which outputs the probability of similarity compared two face images. In order to train this neural network they applied dropout techique to both hidden layers.
 
 \subsubsection{Experiments and results}
 
@@ -320,10 +323,44 @@ Comparing two methods for face verification problem, Joint Bayesian outperforms 
 
 \subsection{DeepID2}
 
+\subsubsection{DeepID2 architecture}
+
+The architecture of deep convolutional network in DeepID2 \cite{sun2014deep} model looks same as one from DeepID. The only difference that they replaced shared weights in layers L3 and L4 by locally connected layers (weights not shared). The purpose of applying local filters to specific patch in the image is to extract much better high-level features. The size of the learned features remained the same and was equal to 160. They used same ReLU non-linear activation function: $max(0,x)$. \par
+
 \begin{center}
 \includegraphics[scale=0.5]{pictures/deepid2.png}
-\par\large\textit{Figure ?.?: DeepFace architecture.}
+\par\large\textit{Figure ?.?: DeepID2 architecture.}
 \end{center}
+
+To estimate interpersonal and itrapersoanl differences they used both identification and verification metrics. As one can see on Figure ?.?, first they extracted features for both face images (F1 and F2) applying deep convolutional networks explained later. Second, they calculated identification loss by the cross-entropy objective function for both face images applying the following formula: 
+	\begin{align}
+	\begin{split}
+		 L_{Identification} = - log (p_i) 
+	\end{split}
+	\end{align}
+where $p_i$ is a probability that the face image belongs to class $i$. And the final step was to estimate verification metric. This metric helps to reduce intrapersonal difference between face images belonging to the same person, and at the same time increase interpersonal difference between two different face images. The formula to estimate verification loss for both face images is the following:
+	\begin{align}
+	\begin{split}
+		 L_{Verification}= 
+			\begin{cases}
+    					\frac{1}{2}||f_1 - f_2||_2^2,& \text{if two face images belong to the  same person} \\
+    					\frac{1}{2}max(0,T - ||f_1 - f_2||_2)^2,              & \text{otherwise}
+			\end{cases}
+	\end{split}
+	\end{align} 
+where $f_1$ and $f_2$ extracted features for a pair of face images, and $T$ is a learned margin. They just used L2 norm to calculate similarity between two extracted feature vectors. \par
+
+So the main goal of this model is to learn parameters of this deep convolutional network. But at the same time they are trying to learn gradients for identification and verification metrics. Standard Stochastic Gradient Descent (SGD) was used to calculate all these gradients. Parameter $\lambda$ was used to vary the value of identification and verification gradients during the training process. The only thing that SGD doesn't help to update $T$ value in Eq. 5.2. Instead of that they used lowest verification error calculated on previous step to get updated margin value.
+
+\subsubsection{Experiments and results}
+
+The training process was divided into two main steps. First, they trained DeepID2 model to learn parameters of the network. And after that, they used same Joint Baysian approach to train model for face verification problem. The datset was same as in previous section - CelebA, where $80\%$ of this dataset was used to train DeepID2 model and others to train face verification model. After that they tested their final model on LFW dataset to estimate the accuracy of DeepID2 model. \par
+
+By varying the value of $\lambda$ they were trying to estimate which signal more important: verification or identification. When $\lambda$ was equal to zero, only identification signal left verification signal - disappeared. But on the other side when $\lambda$ was equal to the plus-infinity only verification signal appeared. By providing experiments they made a conclusion that these two extremes do not useful to learn good feature representations. Only the combination of both these signals gave them the best result. The optimal value of $\lambda$ they are suggesting is 0.05. \par
+
+To sum it up, they showed that combining both verification and identification signals one could achieve a way better result then just simply using one of these signals. Identification signal is responsible for interpersonal variations and verification signal controls intrapersonal differences. The new result the got on the LFW dataset is pretty impressive and equal to $99.15\%$. See Table ~\ref{tab:table2} for more details.
+
+
 
 \subsection{DeepID2+}
 
